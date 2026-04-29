@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Drip — Specialty Coffee Discovery & Ranking
 
-## Getting Started
+A polished mobile-first web app for discovering and ranking specialty coffee shops. Built as a startup MVP.
 
-First, run the development server:
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Start at the landing page or go directly to `/home` for the app.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Product Decisions
 
-To learn more about Next.js, take a look at the following resources:
+### Navigation
+Bottom tab nav (Home, Rank, Explore, Saved, Profile) for mobile-first UX. Desktop auto-centers with `max-w-lg mx-auto`. The landing page (`/`) is separate from the app shell and has no nav.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Scoring Systems
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### Community Rank — Elo
+- Each shop starts at Elo 1500 (`ELO_BASE` in `lib/scoring.ts`)
+- Head-to-head votes update both shops using the standard Elo formula (K=32)
+- Scores normalized to 0–100 by mapping Elo range ~1200–1850 linearly
+- Skips and ties leave Elo unchanged
 
-## Deploy on Vercel
+#### Pro Coffee Score — Weighted Criteria
+- 10 criteria, each rated 1–5 by premium reviewers
+- Weights: Bean Quality 15%, Brew Quality 15%, Specialty Focus 12%, Pour Over 10%, Espresso 10%, Brewing Methods 8%, Coffee Variety 8%, Atmosphere 8%, Service 8%, Location 6%
+- Null criteria (shop doesn't offer espresso/pour over) are excluded; remaining weights are renormalized
+- Formula: `(weightedAverage / 5) * 100` → 0–100
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Component Structure
+```
+components/
+  ui/       — ScoreRing, ScoreBadge, Tag, PremiumBadge
+  shop/     — ShopCard (list / grid / featured variants)
+  scoring/  — CriteriaBreakdown
+  nav/      — BottomNav
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Premium Logic
+Zustand-persisted state. In the demo, "Upgrade to Pro" on `/premium` immediately grants access. Premium users can submit 10-criteria Pro reviews and see full breakdowns.
+
+### Data
+24 seed shops — 20 NYC, 4 LA. Archetypes include minimalist espresso bars, roastery cafés, multi-roasters, vibe-led spaces, and work-friendly cafés. Designed so community and pro scores tell different stories (e.g. high-vibe shops rank high in community, lower technically).
+
+---
+
+## Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Landing page |
+| `/onboarding` | 3-step preference setup |
+| `/home` | Discovery feed |
+| `/rank` | Head-to-head pairwise ranking |
+| `/explore` | Search + filter all shops |
+| `/shop/[slug]` | Shop profile with dual scores |
+| `/shop/[slug]/review` | Pro review form (premium only) |
+| `/saved` | Saved + visited lists |
+| `/profile` | User stats + premium status |
+| `/premium` | Paywall + upgrade |
+
+---
+
+## Tech Stack
+
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **Tailwind CSS v4**
+- **Zustand** (client state + persistence)
+- **Lucide React** (icons)
+- **Next/Image** (Unsplash images)

@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
+/* ─── Design tokens ─────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf9f7;
+  --foreground: #1c1917;
+
+  /* Elevation */
+  --shadow-xs:  0 1px 2px rgba(28,25,23,0.04);
+  --shadow-sm:  0 1px 4px rgba(28,25,23,0.06), 0 1px 2px rgba(28,25,23,0.04);
+  --shadow-md:  0 4px 12px rgba(28,25,23,0.08), 0 1px 3px rgba(28,25,23,0.05);
+  --shadow-lg:  0 8px 24px rgba(28,25,23,0.10), 0 2px 6px rgba(28,25,23,0.06);
+  --shadow-card-hover: 0 8px 20px rgba(28,25,23,0.10), 0 2px 6px rgba(28,25,23,0.06);
+
+  /* Timing */
+  --t-micro: 80ms;
+  --t-fast:  150ms;
+  --t-base:  220ms;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base ──────────────────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* ─── Animations ────────────────────────────────────────────────────────────── */
+
+@keyframes score-ring {
+  from { stroke-dashoffset: 283; }
+  to { stroke-dashoffset: var(--target-offset); }
+}
+
+.score-ring circle.progress {
+  animation: score-ring 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up            { animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-up-delay-1    { animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both; }
+.animate-fade-up-delay-2    { animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both; }
+.animate-fade-up-delay-3    { animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
+
+/* ─── Interaction primitives ────────────────────────────────────────────────── */
+
+/* Primary tap feedback — scale + subtle shadow drop */
+.tap-scale {
+  transition:
+    transform var(--t-micro) cubic-bezier(0.34, 1.2, 0.64, 1),
+    box-shadow var(--t-micro) ease,
+    opacity var(--t-micro) ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.tap-scale:active {
+  transform: scale(0.965);
+  box-shadow: none !important;
+}
+
+/* Card hover lift — desktop quality-of-life */
+.card-lift {
+  transition:
+    box-shadow var(--t-fast) ease,
+    transform var(--t-fast) ease,
+    border-color var(--t-fast) ease;
+  box-shadow: var(--shadow-xs);
+}
+
+.card-lift:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+
+.card-lift:active {
+  transform: scale(0.975) translateY(0);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ─── Scrollbars ────────────────────────────────────────────────────────────── */
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
