@@ -79,7 +79,8 @@ export default function ReviewPage({
   const { slug } = use(params);
   const router = useRouter();
   const shop = getShopBySlug(slug);
-  const { user } = useAppState();
+  const user = useAppState((s) => s.user);
+  const submitProReview = useAppState((s) => s.submitProReview);
 
   const [scores, setScores] = useState<CriteriaScores>({
     variationsOfCoffee: 0,
@@ -139,7 +140,11 @@ export default function ReviewPage({
     : null;
 
   const handleSubmit = () => {
-    if (!allFilled) return;
+    if (!allFilled || !shop) return;
+    const normalized = Object.fromEntries(
+      Object.entries(scores).map(([k, v]) => [k, v === 0 ? null : v]),
+    ) as CriteriaScores;
+    submitProReview(shop.id, normalized);
     setSubmitted(true);
   };
 

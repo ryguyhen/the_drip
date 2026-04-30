@@ -3,12 +3,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
-  User, CoffeeShop, SavedShop, UserVisit,
+  User, CoffeeShop, CriteriaScores, SavedShop, UserVisit,
   InsertionState, InsertionComparison, LastInsertionResult,
 } from "@/types";
 import { MOCK_USER } from "@/data/user";
 import { SHOPS } from "@/data/shops";
-import { updateElo, eloToScore } from "@/lib/scoring";
+import { updateElo, eloToScore, calculateProScore } from "@/lib/scoring";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +21,10 @@ interface AppState {
 
   /** Set after an insertion completes — cleared by rank page after showing result */
   lastInsertionResult: LastInsertionResult | null;
+
+  /** True once the persist middleware has rehydrated from localStorage */
+  _hasHydrated: boolean;
+  setHasHydrated: (v: boolean) => void;
 
   // User
   setUser: (partial: Partial<User>) => void;
@@ -70,7 +74,13 @@ interface AppState {
   /** Clear the result snapshot after the rank page has shown it */
   clearLastInsertionResult: () => void;
 
-  completeOnboarding: (preferences: User["preferences"]) => void;
+  /**
+   * Merge a new pro review into a shop's running averages and recompute pro score.
+   * Treats score 0 as "not provided" (UI uses 0 for unrated stars).
+   */
+  submitProReview: (shopId: string, scores: CriteriaScores) => void;
+
+  completeOnboarding: (preferences: User["preferences"], city: string) => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -111,6 +121,45 @@ function applyPlacement(
   });
 }
 
+/**
+ * Merge a new review's scores into a shop's running per-criterion averages.
+ * Treats incoming 0 as "not provided" so blank stars don't drag the average down.
+ */
+function mergeCriteriaAverages(
+  prev: CriteriaScores | null,
+  prevCount: number,
+  incoming: CriteriaScores,
+): CriteriaScores {
+  const keys = Object.keys(incoming) as Array<keyof CriteriaScores>;
+  const next: Record<keyof CriteriaScores, number | null> = {
+    variationsOfCoffee: 0,
+    qualityOfBean: 0,
+    variationsOfBrewingMethods: 0,
+    qualityOfBrew: 0,
+    atmosphereVibe: 0,
+    qualityOfService: 0,
+    qualityOfPourOver: null,
+    qualityOfEspresso: null,
+    specialtyFocus: 0,
+    locationOfShop: 0,
+  };
+  keys.forEach((k) => {
+    const incomingVal = incoming[k];
+    const provided = incomingVal !== null && incomingVal > 0;
+    const prevVal = prev?.[k] ?? null;
+    if (!provided) {
+      next[k] = prevVal;
+      return;
+    }
+    if (prevVal === null || prevCount === 0) {
+      next[k] = incomingVal;
+      return;
+    }
+    next[k] = (prevVal * prevCount + incomingVal) / (prevCount + 1);
+  });
+  return next as CriteriaScores;
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useAppState = create<AppState>()(
@@ -122,6 +171,9 @@ export const useAppState = create<AppState>()(
       visits: [],
       hasCompletedOnboarding: false,
       lastInsertionResult: null,
+
+      _hasHydrated: false,
+      setHasHydrated: (v) => set({ _hasHydrated: v }),
 
       // ── User ──────────────────────────────────────────────────────────────
 
@@ -385,10 +437,32 @@ export const useAppState = create<AppState>()(
 
       clearLastInsertionResult: () => set({ lastInsertionResult: null }),
 
-      completeOnboarding: (preferences) =>
+      submitProReview: (shopId, scores) => {
+        set((state) => {
+          const idx = state.shops.findIndex((s) => s.id === shopId);
+          if (idx === -1) return {};
+          const shop = state.shops[idx];
+          const nextAverages = mergeCriteriaAverages(
+            shop.proCriteriaAverages,
+            shop.proReviewCount,
+            scores,
+          );
+          const nextProScore = calculateProScore(nextAverages);
+          const nextShops = [...state.shops];
+          nextShops[idx] = {
+            ...shop,
+            proCriteriaAverages: nextAverages,
+            proReviewCount: shop.proReviewCount + 1,
+            proScore: nextProScore,
+          };
+          return { shops: nextShops };
+        });
+      },
+
+      completeOnboarding: (preferences, city) =>
         set((state) => ({
           hasCompletedOnboarding: true,
-          user: { ...state.user, preferences },
+          user: { ...state.user, preferences, city },
         })),
     }),
     {
@@ -401,6 +475,9 @@ export const useAppState = create<AppState>()(
         shops: state.shops,
         lastInsertionResult: state.lastInsertionResult,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

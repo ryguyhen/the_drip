@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 export default function ProfilePage() {
   const { user, savedShops, visits, upgradeToPremium, getRankedVisits, shops } = useAppState();
+  const hasHydrated = useAppState((s) => s._hasHydrated);
 
   const ranked = getRankedVisits();
   const visitedCount = visits.length;
@@ -170,7 +171,11 @@ export default function ProfilePage() {
       )}
 
       {/* Premium */}
-      {user.isPremium ? (
+      {!hasHydrated ? (
+        <div className="px-4 py-4 border-b border-stone-100">
+          <div className="h-[120px] bg-stone-100 rounded-2xl animate-pulse" />
+        </div>
+      ) : user.isPremium ? (
         <div className="px-4 py-4 border-b border-stone-100">
           <div className="p-4 bg-gradient-to-r from-amber-50 to-amber-50/30 border border-amber-100 rounded-2xl">
             <div className="flex items-center gap-2 mb-2">

@@ -116,6 +116,7 @@ function VisitedShopRow({
 
 export default function SavedPage() {
   const { savedShops, visits, shops, getRankedVisits } = useAppState();
+  const hasHydrated = useAppState((s) => s._hasHydrated);
   const [tab, setTab] = useState<Tab>("visited");
 
   const saved = savedShops
@@ -197,8 +198,19 @@ export default function SavedPage() {
       </div>
 
       <div className="px-4">
+        {!hasHydrated ? (
+          <div className="space-y-3 py-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-[88px] bg-stone-100 rounded-2xl animate-pulse"
+              />
+            ))}
+          </div>
+        ) : null}
+
         {/* Visited tab */}
-        {tab === "visited" && (
+        {hasHydrated && tab === "visited" && (
           visitedList.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">☕</div>
@@ -256,7 +268,7 @@ export default function SavedPage() {
         )}
 
         {/* Saved tab */}
-        {tab === "saved" && (
+        {hasHydrated && tab === "saved" && (
           saved.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔖</div>

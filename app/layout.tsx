@@ -10,10 +10,12 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: "The Drip — Specialty Coffee Discovery",
   description:
     "Discover and rank the world's best specialty coffee shops. Community rankings meet structured pro reviews.",
-  icons: { icon: "/favicon.ico" },
 };
 
 export const viewport: Viewport = {

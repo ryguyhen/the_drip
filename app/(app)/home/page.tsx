@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, GitCompareArrows, ChevronRight, TrendingUp } from "lucide-react";
+import { GitCompareArrows, ChevronRight, TrendingUp } from "lucide-react";
 import { ShopCard } from "@/components/shop/ShopCard";
 import { useAppState } from "@/hooks/useAppState";
 import { getTrendingShops, getTopRankedByCity } from "@/data/shops";
@@ -113,18 +113,13 @@ export default function HomePage() {
           <p className="text-xs text-stone-400 mb-0.5">Good morning,</p>
           <h1 className="text-xl font-bold text-stone-900">{user.name.split(" ")[0]}</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/rank"
-            className="flex items-center gap-1.5 bg-amber-500 text-white rounded-full px-3 py-1.5 text-xs font-semibold tap-scale"
-          >
-            <GitCompareArrows size={12} />
-            Rank
-          </Link>
-          <button className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center text-stone-500">
-            <Bell size={16} />
-          </button>
-        </div>
+        <Link
+          href="/rank"
+          className="flex items-center gap-1.5 bg-amber-500 text-white rounded-full px-3 py-1.5 text-xs font-semibold tap-scale"
+        >
+          <GitCompareArrows size={12} />
+          Rank
+        </Link>
       </header>
 
       {/* Score explainer */}

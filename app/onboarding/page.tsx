@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   };
 
   const handleFinish = () => {
-    completeOnboarding(selectedPrefs);
+    completeOnboarding(selectedPrefs, selectedCity);
     router.push("/home");
   };
 
