@@ -13,6 +13,17 @@ Open [http://localhost:3000](http://localhost:3000)
 
 Start at the landing page or go directly to `/home` for the app.
 
+### Environment variables
+
+Copy `.env.local.example` to `.env.local` and fill in keys as you enable features.
+
+| Variable | Where used | Required for |
+|---|---|---|
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser | Map embed on `/shop/[slug]`. Restrict by HTTP referrer in Google Cloud. Maps Embed API is free for basic place embeds. |
+| `NEXT_PUBLIC_SITE_URL` | Build | Absolute URLs in OG metadata. Defaults to `http://localhost:3000`. |
+
+Without keys set, features fall back gracefully (the map renders a placeholder with the address still visible).
+
 ---
 
 ## Product Decisions

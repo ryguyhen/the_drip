@@ -26,6 +26,7 @@ import { ScoreBadge } from "@/components/ui/ScoreBadge";
 import { Tag } from "@/components/ui/Tag";
 import { CriteriaBreakdown } from "@/components/scoring/CriteriaBreakdown";
 import { PremiumBadge } from "@/components/ui/PremiumBadge";
+import { ShopLocationMap } from "@/components/shop/ShopLocationMap";
 import { cn } from "@/lib/utils";
 import { scoreLabel } from "@/lib/scoring";
 
@@ -479,6 +480,9 @@ export default function ShopPage({
             </div>
           </div>
         )}
+
+        {/* Location */}
+        <ShopLocationMap shop={shop} />
 
         {/* Actions */}
         <div className="py-5 space-y-2 pb-8">
